@@ -48,6 +48,7 @@ export default async (req) => {
       weeks, interests,
     };
     const admin = isAdmin(req.headers.get("x-admin-code") || "");
+    if (!admin) { delete summary.minBudget; delete summary.medBudget; delete summary.maxTravel; }
     const shown = {};
     for (const [id, p] of Object.entries(participants)) shown[id] = admin ? p : { answered: true };
     return json({ trip: trip || {}, participants: shown, summary, admin, ideas: ideas || [], votes, aiEnabled: !!Netlify.env.get("ANTHROPIC_API_KEY") });
