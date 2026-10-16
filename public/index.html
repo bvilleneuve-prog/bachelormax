@@ -123,6 +123,7 @@ footer{font-size:13px;color:var(--muted)}
     <h2 id="h-gang"><span class="n">1</span>Le gang</h2>
     <div class="panel" id="summary"></div>
     <div class="panel"><div class="people" id="people"></div></div>
+    <p class="note">Les réponses détaillées sont visibles seulement par l'organisateur. Tout le monde voit le résumé du groupe.</p>
     <div class="actions"><button class="primary" type="button" id="meBtn">Remplir mes préférences</button></div>
 
     <form id="pForm" class="panel" hidden>
@@ -187,8 +188,8 @@ async function api(body){
 }
 async function load(){
   try{
-    const r = await fetch("/api/data",{cache:"no-store"}); const d = await r.json();
-    S.trip=d.trip||{}; S.ideas=d.ideas||[]; S.votes=d.votes||{}; S.aiEnabled=!!d.aiEnabled;
+    const r = await fetch("/api/data",{cache:"no-store",headers:S.admin?{"x-admin-code":S.admin}:{}}); const d = await r.json();
+    S.trip=d.trip||{}; S.ideas=d.ideas||[]; S.votes=d.votes||{}; S.aiEnabled=!!d.aiEnabled; S.summary=d.summary||{};
     S.people=Object.entries(d.participants||{}).map(([id,p])=>({id,name:nameOf(id),...p}));
     renderAll();
   }catch{ $("route").innerHTML=`<span class="muted">Impossible de charger les données. Rafraîchis la page.</span>`; }
@@ -204,15 +205,11 @@ $("voter").onchange=()=>{ setMe($("voter").value); renderPeople(); renderIdeas()
 
 // ---------- summary ----------
 function summarize(){
-  const P=S.people, n=P.length;
-  const budgets=P.map(p=>+p.budget).filter(b=>b>0).sort((a,b)=>a-b);
-  const travel=P.map(p=>+p.travel||4);
-  const maxTravel=travel.length?Math.min(...travel):4;
-  const wk=WEEKS.map(([d,l,t])=>({d,l,t,c:P.filter(p=>(p.weeks||[]).includes(d)).length}));
+  const s=S.summary||{}, n=s.n||0;
+  const wk=WEEKS.map(([d,l,t])=>({d,l,t,c:(s.weeks||{})[d]||0}));
   const bestC=Math.max(0,...wk.map(w=>w.c));
-  const ints={}; P.forEach(p=>(p.interests||[]).forEach(i=>ints[i]=(ints[i]||0)+1));
-  const topInts=Object.entries(ints).sort((a,b)=>b[1]-a[1]);
-  return {n,minBudget:budgets[0],medBudget:budgets.length?budgets[Math.floor((budgets.length-1)/2)]:null,maxTravel,wk,bestC,topInts};
+  const topInts=Object.entries(s.interests||{}).sort((a,b)=>b[1]-a[1]);
+  return {n,minBudget:s.minBudget,medBudget:s.medBudget,maxTravel:s.maxTravel||4,wk,bestC,topInts};
 }
 function renderTrip(){
   const t=S.trip, nights=t.nights||2;
@@ -242,6 +239,7 @@ function renderPeople(){
     const id=slug(name), p=S.people.find(x=>x.id===id), me=id===S.me;
     const who=`<span class="nm">${esc(name)}${me?' <span class="muted">(toi)</span>':""}${p?' <span class="tag" style="color:var(--ok)">✓ a répondu</span>':""}</span>`;
     if(!p) return `<div class="person">${who}<span><button class="ghost" data-edit="${id}" type="button">Remplir</button></span><span class="meta">En attente de réponse</span></div>`;
+    if(p.answered) return `<div class="person">${who}<span><button class="ghost" data-edit="${id}" type="button">Modifier</button></span></div>`;
     const wks=(p.weeks||[]).map(d=>(WEEKS.find(w=>w[0]===d)||[])[1]).filter(Boolean);
     return `<div class="person">${who}
       <span><button class="ghost" data-edit="${id}" type="button">Modifier</button>${S.admin?`<button class="ghost" data-del="${id}" type="button">Effacer</button>`:""}</span>
@@ -298,7 +296,8 @@ function renderAll(){ renderTrip(); renderSummary(); renderPeople(); renderIdeas
 
 // ---------- participant form ----------
 function fillForm(id){
-  const p=S.people.find(x=>x.id===id)||{};
+  let p=S.people.find(x=>x.id===id)||{};
+  if(!p.weeks){ try{ p=JSON.parse(ls.get("bachelor-mine-"+id)||"{}"); }catch{ p={}; } }
   $("pBudget").value=p.budget||""; $("pTravel").value=String(p.travel||4); $("pNotes").value=p.notes||"";
   document.querySelectorAll('#pWeeks input').forEach(i=>i.checked=(p.weeks||[]).includes(i.value));
   document.querySelectorAll('#pInterests input').forEach(i=>i.checked=(p.interests||[]).includes(i.value));
@@ -318,10 +317,12 @@ $("pForm").addEventListener("submit",async e=>{
   if(!nameOf(id)){ $("pStatus").textContent="Choisis ton nom dans la liste."; return; }
   $("pSave").disabled=true; $("pStatus").textContent="Enregistrement…";
   try{
-    await api({action:"participant",id,budget:+$("pBudget").value||null,travel:+$("pTravel").value,
+    const mine={budget:+$("pBudget").value||null,travel:+$("pTravel").value,
       weeks:[...document.querySelectorAll('#pWeeks input:checked')].map(i=>i.value),
       interests:[...document.querySelectorAll('#pInterests input:checked')].map(i=>i.value),
-      notes:$("pNotes").value.trim()});
+      notes:$("pNotes").value.trim()};
+    await api({action:"participant",id,...mine});
+    ls.set("bachelor-mine-"+id, JSON.stringify(mine));
     if(!S.me) setMe(id);
     $("pForm").hidden=true; await load();
   }catch(err){ $("pStatus").textContent="Pas pu enregistrer : "+err.message; }
@@ -347,13 +348,13 @@ function alertNote(m){ $("genStatus").textContent=m; }
 
 // ---------- organisateur ----------
 $("adminBtn").onclick=()=>{
-  if(S.admin){ S.admin=""; ls.set("bachelor-admin",""); renderAll(); return; }
+  if(S.admin){ S.admin=""; ls.set("bachelor-admin",""); load(); return; }
   $("adminForm").hidden=!$("adminForm").hidden; $("adminCode").focus();
 };
 $("adminForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const code=$("adminCode").value.trim();
-  try{ const r=await api({action:"checkAdmin",code}); if(r.ok){ S.admin=code; ls.set("bachelor-admin",code); $("adminForm").hidden=true; $("adminCode").value=""; renderAll(); } else $("aStatus").textContent="Code invalide."; }
+  try{ const r=await api({action:"checkAdmin",code}); if(r.ok){ S.admin=code; ls.set("bachelor-admin",code); $("adminForm").hidden=true; $("adminCode").value=""; await load(); } else $("aStatus").textContent="Code invalide."; }
   catch{ $("aStatus").textContent="Vérification impossible."; }
 });
 $("tripEditBtn").onclick=()=>{ const t=S.trip; $("tGroom").value=t.groom||""; $("tFrom").value=t.from||""; $("tNights").value=String(t.nights||2); $("tVibe").value=t.vibe||""; $("tripForm").hidden=false; };
