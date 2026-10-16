@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le bachelor 2027</title>
+<meta name="description" content="Planif du bachelor : dispos, budget, idées de destinations et votes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one column "carnet de route" — bandeau du voyage, puis 1. le gang, 2. les idées, 3. le vote */
+:root{
+  --bg:#eef3f1; --surface:#ffffff; --fg:#14231f; --muted:#5b6e68; --line:#d3dfdb;
+  --pine:#1d4a42; --lake:#1b6b86; --sun:#e39a2d; --sun-ink:#4a2c00; --chip:#e3ece9; --ok:#2f7d4f;
+  --display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1a18; --surface:#16241f; --fg:#e4eeea; --muted:#93a8a1; --line:#2a3d37;
+  --pine:#8fd1bf; --lake:#6cc0dd; --sun:#f0ae4a; --sun-ink:#2a1800; --chip:#1f322c; --ok:#6fcf97; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1a18; --surface:#16241f; --fg:#e4eeea; --muted:#93a8a1; --line:#2a3d37;
+  --pine:#8fd1bf; --lake:#6cc0dd; --sun:#f0ae4a; --sun-ink:#2a1800; --chip:#1f322c; --ok:#6fcf97; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px;display:flex;flex-direction:column;gap:36px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(30px,6vw,48px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:24px;font-weight:800;display:flex;align-items:baseline;gap:10px}
+h2 .n{font-family:var(--mono);font-size:13px;color:var(--sun);font-weight:500}
+h3{font-size:19px;font-weight:800}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+p{margin:0}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{display:flex;flex-direction:column;gap:14px}
+.route{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:15px}
+.route b{color:var(--pine)}
+.sec{display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat .v{font-family:var(--display);font-weight:800;font-size:22px;color:var(--pine)}
+.stat .k{font-size:12px;color:var(--muted)}
+.weeks{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.wk{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.wk .d{font-weight:600;font-size:13px}
+.wk .bar{height:6px;border-radius:3px;background:var(--chip);overflow:hidden}
+.wk .bar i{display:block;height:100%;background:var(--lake)}
+.wk.best{border-color:var(--sun)}
+.wk.best .bar i{background:var(--sun)}
+.wk .c{font-size:12px;color:var(--muted)}
+.tag{font-size:11px;color:var(--sun);font-weight:600}
+.people{display:flex;flex-direction:column}
+.person{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 0;border-top:1px solid var(--line)}
+.person:first-child{border-top:0}
+.person .nm{font-weight:600}
+.person .meta{font-size:13px;color:var(--muted);grid-column:1/-1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--chip);border-radius:999px;padding:3px 10px;font-size:13px}
+button,.btn{font:inherit;font-weight:600;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button:hover,.btn:hover{border-color:var(--lake)}
+button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--lake);outline-offset:2px}
+button.primary{background:var(--sun);border-color:var(--sun);color:var(--sun-ink)}
+button.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:6px 8px}
+button:disabled{opacity:.5;cursor:default}
+form{display:flex;flex-direction:column;gap:16px}
+label,.lbl{font-weight:600;font-size:14px;display:block;margin-bottom:6px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:560px){.row{grid-template-columns:1fr}}
+input[type=text],input[type=number],select,textarea{width:100%;font:inherit;padding:9px 11px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+textarea{min-height:64px;resize:vertical}
+.pick{display:flex;flex-wrap:wrap;gap:6px}
+.pick label{margin:0;font-weight:500;font-size:13px;border:1px solid var(--line);border-radius:999px;padding:5px 11px;cursor:pointer;user-select:none}
+.pick input{position:absolute;opacity:0;pointer-events:none}
+.pick label:has(input:checked){background:var(--pine);border-color:var(--pine);color:var(--bg)}
+.pick label:has(input:focus-visible){outline:2px solid var(--lake);outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.note{font-size:13px;color:var(--muted)}
+.msg{font-size:14px;padding:10px 12px;border-radius:9px;background:var(--chip)}
+.ideas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:700px){.ideas{grid-template-columns:1fr}}
+.idea{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.idea.lead{border-color:var(--sun);box-shadow:0 0 0 1px var(--sun)}
+.idea .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.idea .facts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.idea ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px;font-size:14px}
+.idea .links{display:flex;flex-wrap:wrap;gap:8px}
+.idea .links a{font-size:13px;padding:6px 10px}
+.votes{font-family:var(--mono);font-size:13px;white-space:nowrap;color:var(--pine)}
+.vote.on{background:var(--pine);border-color:var(--pine);color:var(--bg)}
+.empty{border:1.5px dashed var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:8px;color:var(--muted)}
+.empty b{color:var(--fg)}
+.streaming{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:pre-wrap;max-height:120px;overflow:auto}
+footer{font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.idea{animation:in .35s ease both}@keyframes in{from{transform:translateY(6px)}to{transform:none}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Enterrement de vie de garçon · été 2027</span>
+    <h1 id="title">Le bachelor</h1>
+    <div class="route" id="route"><span class="muted">Chargement…</span></div>
+    <div class="actions" id="tripEditWrap" hidden><button class="ghost" id="tripEditBtn" type="button">Modifier les infos du voyage</button></div>
+    <form id="tripForm" class="panel" hidden>
+      <div class="row">
+        <div><label for="tGroom">Nom du futur marié</label><input id="tGroom" type="text" maxlength="40" placeholder="ex. Max"></div>
+        <div><label for="tFrom">Ville de départ</label><input id="tFrom" type="text" maxlength="60" placeholder="ex. Montréal"></div>
+      </div>
+      <div class="row">
+        <div><label for="tNights">Nombre de nuits</label><select id="tNights"><option value="1">1 nuit</option><option value="2" selected>2 nuits</option><option value="3">3 nuits</option></select></div>
+        <div><label for="tVibe">Le vibe recherché</label><input id="tVibe" type="text" maxlength="120" placeholder="ex. chalet + party, pas trop fancy"></div>
+      </div>
+      <div class="actions"><button class="primary" type="submit">Enregistrer</button><button type="button" id="tripCancel">Annuler</button><span class="note" id="tStatus"></span></div>
+    </form>
+  </header>
+
+  <section class="sec" aria-labelledby="h-gang">
+    <h2 id="h-gang"><span class="n">1</span>Le gang</h2>
+    <div class="panel" id="summary"></div>
+    <div class="panel"><div class="people" id="people"></div></div>
+    <div class="actions"><button class="primary" type="button" id="meBtn">Remplir mes préférences</button></div>
+
+    <form id="pForm" class="panel" hidden>
+      <h3 id="pFormTitle">Tes préférences</h3>
+      <div class="row">
+        <div><label for="pName">Qui es-tu?</label><select id="pName" required></select></div>
+        <div><label for="pBudget">Budget max par personne (CAD, tout compris)</label><input id="pBudget" type="number" min="50" max="5000" step="50" placeholder="ex. 600"></div>
+      </div>
+      <div><span class="lbl">Fins de semaine où tu es dispo</span><div class="pick" id="pWeeks"></div></div>
+      <div><label for="pTravel">Combien de route max?</label>
+        <select id="pTravel"><option value="2">Max 2 h</option><option value="4" selected>Max 4 h</option><option value="6">Max 6 h</option><option value="99">Avion OK</option></select></div>
+      <div><span class="lbl">Ce qui te tente</span><div class="pick" id="pInterests"></div></div>
+      <div><label for="pNotes">Autre chose? (allergies, veto, idées folles)</label><textarea id="pNotes" maxlength="300"></textarea></div>
+      <div class="actions"><button class="primary" type="submit" id="pSave">Enregistrer</button><button type="button" id="pCancel">Annuler</button><span class="note" id="pStatus"></span></div>
+    </form>
+  </section>
+
+  <section class="sec" aria-labelledby="h-ideas">
+    <h2 id="h-ideas"><span class="n">2</span>Les idées</h2>
+    <p class="muted">Des destinations, de l'hébergement et des activités proposés selon les préférences du groupe. Chacun vote pour son option préférée.</p>
+    <div class="actions">
+      <button class="primary" type="button" id="genBtn" hidden>Générer des idées</button>
+      <span class="note" id="genStatus"></span>
+    </div>
+    <div class="streaming" id="stream" hidden></div>
+    <div class="actions" id="voterWrap"><label for="voter" style="margin:0">Tu votes en tant que</label><select id="voter" style="width:auto"></select></div>
+    <div id="ideas"></div>
+  </section>
+
+  <footer class="actions" style="justify-content:space-between">
+    <span>Les prix et noms d'hôtels sont des suggestions : vérifie avec les liens avant de réserver. En août–septembre, réserve tôt.</span>
+    <button class="ghost" type="button" id="adminBtn">Mode organisateur</button>
+  </footer>
+  <form id="adminForm" class="panel" hidden>
+    <div><label for="adminCode">Code organisateur</label><input id="adminCode" type="text" autocomplete="off"></div>
+    <div class="actions"><button class="primary" type="submit">Entrer</button><span class="note" id="aStatus"></span></div>
+  </form>
+</div>
+
+<script>
+const ROSTER = ["Alex Wallon","Ben Villeneuve","Jonathan Gaudreau","Julien Côté","Simon Auclair","William Lemay-Choquette"];
+const WEEKS = [
+  ["2027-07-30","30 juil.–1 août","Congé civique (ON)"],
+  ["2027-08-06","6–8 août",""],["2027-08-13","13–15 août",""],["2027-08-20","20–22 août",""],["2027-08-27","27–29 août",""],
+  ["2027-09-03","3–6 sept.","Fête du Travail"],["2027-09-10","10–12 sept.",""],["2027-09-17","17–19 sept.",""],["2027-09-24","24–26 sept.",""]
+];
+const INTERESTS = ["Chalet + BBQ","Bars / nightlife","Golf","Rafting / kayak","Pêche","Bateau / ponton","Casino","Spa / nordique","Karting","Paintball / lancer de haches","Brasseries","Match de sport","Randonnée","Bon resto","Escape game"];
+const TRAVEL = {2:"2 h",4:"4 h",6:"6 h",99:"avion OK"};
+const slug = n => n.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const nameOf = id => ROSTER.find(n=>slug(n)===id) || "";
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ls = { get:k=>{try{return localStorage.getItem(k)||""}catch{return ""}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}} };
+
+const S = { trip:{}, people:[], ideas:[], votes:{}, aiEnabled:false, me:ls.get("bachelor-me"), admin:ls.get("bachelor-admin") };
+
+async function api(body){
+  const r = await fetch("/api/data",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error||"Erreur serveur");
+  return j;
+}
+async function load(){
+  try{
+    const r = await fetch("/api/data",{cache:"no-store"}); const d = await r.json();
+    S.trip=d.trip||{}; S.ideas=d.ideas||[]; S.votes=d.votes||{}; S.aiEnabled=!!d.aiEnabled;
+    S.people=Object.entries(d.participants||{}).map(([id,p])=>({id,name:nameOf(id),...p}));
+    renderAll();
+  }catch{ $("route").innerHTML=`<span class="muted">Impossible de charger les données. Rafraîchis la page.</span>`; }
+}
+
+// ---------- pickers ----------
+const nameOptions = `<option value="">Choisis ton nom</option>` + ROSTER.map(n=>`<option value="${slug(n)}">${esc(n)}</option>`).join("");
+$("pName").innerHTML = nameOptions; $("voter").innerHTML = nameOptions;
+$("pWeeks").innerHTML = WEEKS.map(([d,l,t])=>`<label><input type="checkbox" name="wk" value="${d}">${l}${t?` · ${t}`:""}</label>`).join("");
+$("pInterests").innerHTML = INTERESTS.map(i=>`<label><input type="checkbox" name="in" value="${esc(i)}">${esc(i)}</label>`).join("");
+function setMe(id){ S.me=id; ls.set("bachelor-me",id); $("voter").value=id; }
+$("voter").onchange=()=>{ setMe($("voter").value); renderPeople(); renderIdeas(); gate(); };
+
+// ---------- summary ----------
+function summarize(){
+  const P=S.people, n=P.length;
+  const budgets=P.map(p=>+p.budget).filter(b=>b>0).sort((a,b)=>a-b);
+  const travel=P.map(p=>+p.travel||4);
+  const maxTravel=travel.length?Math.min(...travel):4;
+  const wk=WEEKS.map(([d,l,t])=>({d,l,t,c:P.filter(p=>(p.weeks||[]).includes(d)).length}));
+  const bestC=Math.max(0,...wk.map(w=>w.c));
+  const ints={}; P.forEach(p=>(p.interests||[]).forEach(i=>ints[i]=(ints[i]||0)+1));
+  const topInts=Object.entries(ints).sort((a,b)=>b[1]-a[1]);
+  return {n,minBudget:budgets[0],medBudget:budgets.length?budgets[Math.floor((budgets.length-1)/2)]:null,maxTravel,wk,bestC,topInts};
+}
+function renderTrip(){
+  const t=S.trip, nights=t.nights||2;
+  $("title").textContent = t.groom ? `Le bachelor de ${t.groom}` : "Le bachelor";
+  const parts=[`<span>Départ : <b>${esc(t.from||"à préciser")}</b></span>`,`<span>Durée : <b>${nights} nuit${nights>1?"s":""}</b></span>`,`<span>Quand : <b>août–septembre 2027</b></span>`];
+  if(t.vibe) parts.push(`<span>Vibe : <b>${esc(t.vibe)}</b></span>`);
+  $("route").innerHTML=parts.join("");
+}
+function renderSummary(){
+  const s=summarize();
+  if(!s.n){ $("summary").innerHTML=`<div class="empty"><b>Personne n'a encore répondu.</b><span>Chaque ami clique sur « Remplir mes préférences » : dispos, budget, distance et ce qui le tente. Le résumé du groupe s'affiche ici.</span></div>`; return; }
+  const best=s.wk.filter(w=>w.c===s.bestC&&w.c>0);
+  $("summary").innerHTML=`
+   <div class="stats">
+     <div class="stat"><span class="v mono">${s.n}/${ROSTER.length}</span><span class="k">amis ont répondu</span></div>
+     <div class="stat"><span class="v mono">${s.minBudget?s.minBudget+" $":"—"}</span><span class="k">budget le plus bas</span></div>
+     <div class="stat"><span class="v mono">${s.medBudget?s.medBudget+" $":"—"}</span><span class="k">budget médian</span></div>
+     <div class="stat"><span class="v">${TRAVEL[s.maxTravel]}</span><span class="k">de route max (le plus strict)</span></div>
+   </div>
+   <div style="margin-top:18px"><div class="eyebrow" style="margin-bottom:8px">Disponibilités</div>
+   <div class="weeks">${s.wk.map(w=>`<div class="wk ${w.c===s.bestC&&w.c>0?"best":""}"><span class="d">${w.l}</span><span class="bar"><i style="width:${w.c/s.n*100}%"></i></span><span class="c mono">${w.c}/${s.n}</span>${w.t?`<span class="tag">${w.t}</span>`:""}</div>`).join("")}</div>
+   ${best.length?`<p class="note" style="margin-top:8px">Meilleur choix : ${best.map(w=>w.l).join(", ")} (${s.bestC}/${s.n} dispos)</p>`:""}</div>
+   ${s.topInts.length?`<div style="margin-top:18px"><div class="eyebrow" style="margin-bottom:8px">Ce qui tente le groupe</div><div class="chips">${s.topInts.map(([i,c])=>`<span class="chip">${esc(i)} <span class="mono muted">${c}</span></span>`).join("")}</div></div>`:""}`;
+}
+function renderPeople(){
+  $("people").innerHTML=ROSTER.map(name=>{
+    const id=slug(name), p=S.people.find(x=>x.id===id), me=id===S.me;
+    const who=`<span class="nm">${esc(name)}${me?' <span class="muted">(toi)</span>':""}${p?' <span class="tag" style="color:var(--ok)">✓ a répondu</span>':""}</span>`;
+    if(!p) return `<div class="person">${who}<span><button class="ghost" data-edit="${id}" type="button">Remplir</button></span><span class="meta">En attente de réponse</span></div>`;
+    const wks=(p.weeks||[]).map(d=>(WEEKS.find(w=>w[0]===d)||[])[1]).filter(Boolean);
+    return `<div class="person">${who}
+      <span><button class="ghost" data-edit="${id}" type="button">Modifier</button>${S.admin?`<button class="ghost" data-del="${id}" type="button">Effacer</button>`:""}</span>
+      <span class="meta">${p.budget?`<span class="mono">${esc(p.budget)} $</span> · `:""}route ${TRAVEL[p.travel]||"4 h"} · ${wks.length?esc(wks.join(", ")):"aucune date cochée"}</span>
+      ${(p.interests||[]).length?`<div class="chips meta">${p.interests.map(i=>`<span class="chip">${esc(i)}</span>`).join("")}</div>`:""}
+      ${p.notes?`<span class="meta">« ${esc(p.notes)} »</span>`:""}</div>`;
+  }).join("");
+}
+
+// ---------- ideas ----------
+function searchLinks(idea){
+  const s=summarize(), best=s.wk.find(w=>w.c===s.bestC&&w.c>0), n=ROSTER.length, nights=+S.trip.nights||2;
+  let ci="",co="";
+  if(best){ ci=best.d; const o=new Date(best.d+"T12:00:00"); o.setDate(o.getDate()+nights); co=o.toISOString().slice(0,10); }
+  const q=encodeURIComponent(idea.searchArea||idea.destination||"");
+  return [
+    ["Airbnb",`https://www.airbnb.ca/s/${q}/homes?adults=${n}${ci?`&checkin=${ci}&checkout=${co}`:""}`],
+    ["Booking",`https://www.booking.com/searchresults.fr.html?ss=${q}&group_adults=${n}${ci?`&checkin=${ci}&checkout=${co}`:""}`],
+    ["Carte",`https://www.google.com/maps/search/${q}`]
+  ];
+}
+function renderIdeas(){
+  $("voterWrap").hidden = !S.ideas.length;
+  if(!S.ideas.length){
+    $("ideas").innerHTML=`<div class="empty"><b>Aucune idée pour l'instant.</b><span>Quand assez d'amis auront répondu, l'organisateur génère 4 options avec destination, hébergement, activités et coût estimé. Ensuite tout le monde vote ici.</span></div>`;
+    return;
+  }
+  const ids=new Set(S.ideas.map(i=>i.id)), c={};
+  Object.values(S.votes).forEach(v=>{ if(v&&ids.has(v.ideaId)) c[v.ideaId]=(c[v.ideaId]||0)+1; });
+  const max=Math.max(0,...Object.values(c)), myVote=S.votes[S.me]?.ideaId;
+  $("ideas").innerHTML=`<div class="ideas">${S.ideas.map(i=>{
+    const v=c[i.id]||0;
+    const voters=Object.entries(S.votes).filter(([,x])=>x.ideaId===i.id).map(([id])=>nameOf(id).split(" ")[0]);
+    return `<article class="idea ${v&&v===max?"lead":""}">
+      <div class="top"><div><h3>${esc(i.destination)}</h3><p class="muted">${esc(i.headline)}</p></div><span class="votes">${v} vote${v>1?"s":""}</span></div>
+      <div class="facts"><span>Route : ${esc(i.travelTime||"?")}</span><span class="mono">≈ ${esc(i.costPerPerson||"?")} / pers.</span></div>
+      <div><div class="eyebrow">Hébergement</div><ul>${(i.lodging||[]).map(l=>`<li>${esc(l)}</li>`).join("")}</ul></div>
+      <div><div class="eyebrow">Activités</div><ul>${(i.activities||[]).map(a=>`<li>${esc(a)}</li>`).join("")}</ul></div>
+      ${i.why?`<p class="note">${esc(i.why)}</p>`:""}
+      <div class="links">${searchLinks(i).map(([n,u])=>`<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>`).join("")}</div>
+      ${voters.length?`<p class="note">Votes : ${esc(voters.join(", "))}</p>`:""}
+      <button class="vote ${myVote===i.id?"on":""}" data-vote="${esc(i.id)}" type="button">${myVote===i.id?"Mon vote ✓":"Voter pour ça"}</button>
+    </article>`;}).join("")}</div>`;
+}
+function gate(){
+  const a=!!S.admin;
+  $("tripEditWrap").hidden=!a;
+  $("genBtn").hidden=!(a&&S.aiEnabled);
+  $("adminBtn").textContent = a ? "Quitter le mode organisateur" : "Mode organisateur";
+  $("meBtn").textContent = S.me && S.people.some(p=>p.id===S.me) ? "Modifier mes préférences" : "Remplir mes préférences";
+  $("voter").value=S.me||"";
+}
+function renderAll(){ renderTrip(); renderSummary(); renderPeople(); renderIdeas(); gate(); }
+
+// ---------- participant form ----------
+function fillForm(id){
+  const p=S.people.find(x=>x.id===id)||{};
+  $("pBudget").value=p.budget||""; $("pTravel").value=String(p.travel||4); $("pNotes").value=p.notes||"";
+  document.querySelectorAll('#pWeeks input').forEach(i=>i.checked=(p.weeks||[]).includes(i.value));
+  document.querySelectorAll('#pInterests input').forEach(i=>i.checked=(p.interests||[]).includes(i.value));
+}
+function openForm(id){
+  $("pName").value=id||""; fillForm(id||"");
+  $("pFormTitle").textContent = !id||id===S.me ? "Tes préférences" : `Préférences de ${nameOf(id)}`;
+  $("pStatus").textContent=""; $("pForm").hidden=false;
+  $("pForm").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("pName").onchange=()=>fillForm($("pName").value);
+$("meBtn").onclick=()=>openForm(S.me);
+$("pCancel").onclick=()=>{ $("pForm").hidden=true; };
+$("pForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const id=$("pName").value;
+  if(!nameOf(id)){ $("pStatus").textContent="Choisis ton nom dans la liste."; return; }
+  $("pSave").disabled=true; $("pStatus").textContent="Enregistrement…";
+  try{
+    await api({action:"participant",id,budget:+$("pBudget").value||null,travel:+$("pTravel").value,
+      weeks:[...document.querySelectorAll('#pWeeks input:checked')].map(i=>i.value),
+      interests:[...document.querySelectorAll('#pInterests input:checked')].map(i=>i.value),
+      notes:$("pNotes").value.trim()});
+    if(!S.me) setMe(id);
+    $("pForm").hidden=true; await load();
+  }catch(err){ $("pStatus").textContent="Pas pu enregistrer : "+err.message; }
+  finally{ $("pSave").disabled=false; }
+});
+document.addEventListener("click",async e=>{
+  const ed=e.target.closest("[data-edit]"); if(ed){ openForm(ed.dataset.edit); return; }
+  const del=e.target.closest("[data-del]");
+  if(del){
+    if(!del.dataset.confirm){ del.dataset.confirm="1"; del.textContent="Confirmer?"; return; }
+    try{ await api({action:"deleteParticipant",id:del.dataset.del,code:S.admin}); await load(); }catch(err){ alertNote(err.message); }
+    return;
+  }
+  const vb=e.target.closest("[data-vote]");
+  if(vb){
+    if(!S.me){ $("genStatus").textContent="Choisis ton nom dans « Tu votes en tant que » avant de voter."; $("voter").focus(); return; }
+    vb.disabled=true;
+    try{ await api({action:"vote",voter:S.me,ideaId:vb.dataset.vote}); await load(); }catch(err){ $("genStatus").textContent="Vote non enregistré : "+err.message; }
+    vb.disabled=false;
+  }
+});
+function alertNote(m){ $("genStatus").textContent=m; }
+
+// ---------- organisateur ----------
+$("adminBtn").onclick=()=>{
+  if(S.admin){ S.admin=""; ls.set("bachelor-admin",""); renderAll(); return; }
+  $("adminForm").hidden=!$("adminForm").hidden; $("adminCode").focus();
+};
+$("adminForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const code=$("adminCode").value.trim();
+  try{ const r=await api({action:"checkAdmin",code}); if(r.ok){ S.admin=code; ls.set("bachelor-admin",code); $("adminForm").hidden=true; $("adminCode").value=""; renderAll(); } else $("aStatus").textContent="Code invalide."; }
+  catch{ $("aStatus").textContent="Vérification impossible."; }
+});
+$("tripEditBtn").onclick=()=>{ const t=S.trip; $("tGroom").value=t.groom||""; $("tFrom").value=t.from||""; $("tNights").value=String(t.nights||2); $("tVibe").value=t.vibe||""; $("tripForm").hidden=false; };
+$("tripCancel").onclick=()=>{ $("tripForm").hidden=true; };
+$("tripForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  try{ await api({action:"trip",code:S.admin,groom:$("tGroom").value,from:$("tFrom").value,nights:+$("tNights").value,vibe:$("tVibe").value}); $("tripForm").hidden=true; await load(); }
+  catch(err){ $("tStatus").textContent=err.message; }
+});
+
+// ---------- génération ----------
+function buildPrompt(){
+  const s=summarize();
+  const best=s.wk.filter(w=>w.c===s.bestC&&w.c>0).map(w=>w.l+(w.t?` (${w.t})`:"")).join(", ")||"non précisé";
+  return `Tu aides un groupe d'amis québécois à planifier un enterrement de vie de garçon (« bachelor »). Réponds en français québécois naturel.
+
+Infos du voyage:
+- Ville de départ: ${S.trip.from}
+- Durée: ${S.trip.nights||2} nuit(s), une fin de semaine en août-septembre 2027
+- Meilleure(s) fin(s) de semaine pour le groupe: ${best}
+- Nombre de gars: ${ROSTER.length} (${s.n} ont répondu)
+- Budget par personne (tout compris): le plus bas ${s.minBudget||"?"} $ CAD, médian ${s.medBudget||"?"} $ CAD. Respecte le budget le plus bas.
+- Route max acceptée par tous: ${TRAVEL[s.maxTravel]}
+- Vibe: ${S.trip.vibe||"non précisé"}
+- Intérêts du groupe (nombre de gars): ${s.topInts.map(([i,c])=>`${i} (${c})`).join(", ")||"aucun"}
+- Notes des gars: ${S.people.map(p=>p.notes).filter(Boolean).join(" | ")||"aucune"}
+
+Propose exactement 4 options de destination variées (ex. chalet en nature, ville festive, formule plein air, option surprise), réalistes depuis la ville de départ.
+Réponds uniquement avec un tableau JSON (sans texte autour ni bloc de code) de 4 objets avec ces champs:
+{"destination":"Ville/région","headline":"une phrase accrocheuse","travelTime":"ex. 2 h 30 en auto","costPerPerson":"ex. 450-600 $","lodging":["2 ou 3 hébergements pour un groupe, avec noms réels connus si possible"],"activities":["4 à 6 activités concrètes, avec noms d'endroits réels si possible"],"why":"pourquoi ça fit avec ce groupe, en 1-2 phrases","searchArea":"nom de lieu simple pour une recherche Airbnb"}`;
+}
+function parseIdeas(text){
+  const t=text.trim(); const a=t.indexOf("["), b=t.lastIndexOf("]");
+  if(a<0||b<a) throw new Error("réponse illisible");
+  return JSON.parse(t.slice(a,b+1));
+}
+$("genBtn").onclick=async()=>{
+  if(!S.people.length){ alertNote("Il faut au moins une réponse dans « Le gang » avant de générer."); return; }
+  if(!S.trip.from){ alertNote("Ajoute d'abord la ville de départ (Modifier les infos du voyage)."); return; }
+  $("genBtn").disabled=true; alertNote("Claude réfléchit…"); $("stream").hidden=false; $("stream").textContent="";
+  try{
+    const r=await fetch("/api/generate",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({code:S.admin,prompt:buildPrompt()})});
+    if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error(j.error?.message||j.error||("erreur "+r.status)); }
+    const reader=r.body.getReader(), dec=new TextDecoder(); let buf="", text="";
+    for(;;){
+      const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split("\n"); buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith("data:")) continue;
+        try{ const ev=JSON.parse(line.slice(5)); if(ev.type==="content_block_delta"&&ev.delta?.text){ text+=ev.delta.text; $("stream").textContent=text.slice(-600); } if(ev.type==="error") throw new Error(ev.error?.message||"erreur"); }catch(err){ if(err.message&&!err.message.includes("JSON")) throw err; }
+      }
+    }
+    const ideas=parseIdeas(text);
+    await api({action:"ideas",code:S.admin,ideas});
+    alertNote("Nouvelles idées prêtes. Les votes ont été remis à zéro.");
+    await load();
+  }catch(err){ alertNote("La génération n'a pas marché : "+err.message); }
+  finally{ $("genBtn").disabled=false; $("stream").hidden=true; }
+};
+
+// ---------- démarrage ----------
+renderAll(); load();
+setInterval(()=>{ if($("pForm").hidden && $("tripForm").hidden && !document.hidden) load(); }, 15000);
+</script>
+</body>
+</html>
