@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Le bachelor 2027</title>
+<title>Bachelor à Max</title>
 <meta name="description" content="Planif du bachelor : dispos, budget, idées de destinations et votes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
@@ -103,7 +103,7 @@ footer{font-size:13px;color:var(--muted)}
 <div class="wrap">
   <header>
     <span class="eyebrow">Enterrement de vie de garçon · été 2027</span>
-    <h1 id="title">Le bachelor</h1>
+    <h1 id="title">Bachelor à Max</h1>
     <div class="route" id="route"><span class="muted">Chargement…</span></div>
     <div class="actions" id="tripEditWrap" hidden><button class="ghost" id="tripEditBtn" type="button">Modifier les infos du voyage</button></div>
     <form id="tripForm" class="panel" hidden>
@@ -120,7 +120,7 @@ footer{font-size:13px;color:var(--muted)}
   </header>
 
   <section class="sec" aria-labelledby="h-gang">
-    <h2 id="h-gang"><span class="n">1</span>Le gang</h2>
+    <h2 id="h-gang"><span class="n">1</span>Les amis</h2>
     <div class="panel" id="summary"></div>
     <div class="panel"><div class="people" id="people"></div></div>
     <p class="note">Les réponses détaillées sont visibles seulement par l'organisateur. Tout le monde voit le résumé du groupe.</p>
@@ -189,7 +189,7 @@ async function api(body){
 async function load(){
   try{
     const r = await fetch("/api/data",{cache:"no-store",headers:S.admin?{"x-admin-code":S.admin}:{}}); const d = await r.json();
-    S.trip=d.trip||{}; S.ideas=d.ideas||[]; S.votes=d.votes||{}; S.aiEnabled=!!d.aiEnabled; S.summary=d.summary||{};
+    S.trip=d.trip||{}; S.ideas=d.ideas||[]; S.votes=d.votes||{}; S.aiEnabled=!!d.aiEnabled; S.summary=d.summary||{}; S.isAdmin=!!d.admin;
     S.people=Object.entries(d.participants||{}).map(([id,p])=>({id,name:nameOf(id),...p}));
     renderAll();
   }catch{ $("route").innerHTML=`<span class="muted">Impossible de charger les données. Rafraîchis la page.</span>`; }
@@ -213,7 +213,7 @@ function summarize(){
 }
 function renderTrip(){
   const t=S.trip, nights=t.nights||2;
-  $("title").textContent = t.groom ? `Le bachelor de ${t.groom}` : "Le bachelor";
+  $("title").textContent = t.groom ? `Bachelor à ${t.groom}` : "Bachelor à Max";
   const parts=[`<span>Départ : <b>${esc(t.from||"à préciser")}</b></span>`,`<span>Durée : <b>${nights} nuit${nights>1?"s":""}</b></span>`,`<span>Quand : <b>août–septembre 2027</b></span>`];
   if(t.vibe) parts.push(`<span>Vibe : <b>${esc(t.vibe)}</b></span>`);
   $("route").innerHTML=parts.join("");
@@ -225,9 +225,9 @@ function renderSummary(){
   $("summary").innerHTML=`
    <div class="stats">
      <div class="stat"><span class="v mono">${s.n}/${ROSTER.length}</span><span class="k">amis ont répondu</span></div>
-     <div class="stat"><span class="v mono">${s.minBudget?s.minBudget+" $":"—"}</span><span class="k">budget le plus bas</span></div>
+     ${S.isAdmin?`<div class="stat"><span class="v mono">${s.minBudget?s.minBudget+" $":"—"}</span><span class="k">budget le plus bas</span></div>
      <div class="stat"><span class="v mono">${s.medBudget?s.medBudget+" $":"—"}</span><span class="k">budget médian</span></div>
-     <div class="stat"><span class="v">${TRAVEL[s.maxTravel]}</span><span class="k">de route max (le plus strict)</span></div>
+     <div class="stat"><span class="v">${TRAVEL[s.maxTravel]}</span><span class="k">de route max (le plus strict)</span></div>`:""}
    </div>
    <div style="margin-top:18px"><div class="eyebrow" style="margin-bottom:8px">Disponibilités</div>
    <div class="weeks">${s.wk.map(w=>`<div class="wk ${w.c===s.bestC&&w.c>0?"best":""}"><span class="d">${w.l}</span><span class="bar"><i style="width:${w.c/s.n*100}%"></i></span><span class="c mono">${w.c}/${s.n}</span>${w.t?`<span class="tag">${w.t}</span>`:""}</div>`).join("")}</div>
@@ -392,7 +392,7 @@ function parseIdeas(text){
   return JSON.parse(t.slice(a,b+1));
 }
 $("genBtn").onclick=async()=>{
-  if(!S.people.length){ alertNote("Il faut au moins une réponse dans « Le gang » avant de générer."); return; }
+  if(!S.people.length){ alertNote("Il faut au moins une réponse dans « Les amis » avant de générer."); return; }
   if(!S.trip.from){ alertNote("Ajoute d'abord la ville de départ (Modifier les infos du voyage)."); return; }
   $("genBtn").disabled=true; alertNote("Claude réfléchit…"); $("stream").hidden=false; $("stream").textContent="";
   try{
