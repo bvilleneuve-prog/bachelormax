@@ -32,7 +32,25 @@ export default async (req) => {
       store.get("ideas", { type: "json" }),
       readAll(store, "votes/"),
     ]);
-    return json({ trip: trip || {}, participants, ideas: ideas || [], votes, aiEnabled: !!Netlify.env.get("ANTHROPIC_API_KEY") });
+    // Résumé anonyme pour tout le monde; les réponses détaillées seulement pour l'organisateur.
+    const P = Object.values(participants).filter(Boolean);
+    const budgets = P.map((p) => Number(p.budget)).filter((b) => b > 0).sort((a, b) => a - b);
+    const weeks = {}, interests = {};
+    P.forEach((p) => {
+      (p.weeks || []).forEach((w) => { weeks[w] = (weeks[w] || 0) + 1; });
+      (p.interests || []).forEach((i) => { interests[i] = (interests[i] || 0) + 1; });
+    });
+    const summary = {
+      n: P.length,
+      minBudget: budgets[0] ?? null,
+      medBudget: budgets.length ? budgets[Math.floor((budgets.length - 1) / 2)] : null,
+      maxTravel: P.length ? Math.min(...P.map((p) => Number(p.travel) || 4)) : 4,
+      weeks, interests,
+    };
+    const admin = isAdmin(req.headers.get("x-admin-code") || "");
+    const shown = {};
+    for (const [id, p] of Object.entries(participants)) shown[id] = admin ? p : { answered: true };
+    return json({ trip: trip || {}, participants: shown, summary, admin, ideas: ideas || [], votes, aiEnabled: !!Netlify.env.get("ANTHROPIC_API_KEY") });
   }
 
   if (req.method !== "POST") return json({ error: "Méthode non permise" }, 405);
