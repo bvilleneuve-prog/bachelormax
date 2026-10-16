@@ -11,7 +11,8 @@ export default async (req) => {
   if (!admin || body.code !== admin) return new Response(JSON.stringify({ error: "Code organisateur invalide" }), { status: 403 });
 
   const prompt = String(body.prompt || "").slice(0, 6000);
-  const upstream = await fetch("https://api.anthropic.com/v1/messages", {
+  const base = (Netlify.env.get("ANTHROPIC_BASE_URL") || "https://api.anthropic.com").replace(/\/$/, "");
+  const upstream = await fetch(base + "/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
